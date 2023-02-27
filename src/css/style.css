@@ -1,0 +1,267 @@
+* {
+  margin: 0px;
+  padding: 0px;
+}
+
+@keyframes slide_out_to_above {
+  0% {
+    transform: translateY(-100%);
+  }
+
+  100% {
+    transform: 0;
+  }
+}
+
+
+@keyframes bump_up {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: none;
+  }
+}
+
+@keyframes fade_out {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes slide_in_from_left {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: none;
+  }
+}
+
+.fade_out {
+  animation-name: fade_out;
+  animation-duration: 0.5s;
+}
+
+.bump_up {
+  animation-name: bump_up;
+  animation-duration: 0.25s;
+}
+
+.slide_in_from_above {
+  animation-name: slide_in_from_left;
+  animation-duration: 1s;
+}
+
+.slide_out_to_left {
+  animation-name: slide_out_to_left;
+  animation-duration: 1s;
+}
+
+body {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  /* This sets the columns to a ratio of 1/3 and 2/3 */
+  width: calc(100vw - 4px);
+  height: calc(100vh - 4px);
+  background: #1e1e2e;
+}
+
+#sidebar {
+  display: grid;
+  grid-template-columns: 0.25fr 1.75fr;
+  /* This sets the columns to a ratio of 1/3 and 2/3 */
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  background: #1e1e2e;
+
+}
+
+#roller {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  gap: 1rem;
+  padding: 3px;
+  border-radius: 5px 0 0 0;
+}
+
+#roller_wrapper {
+  position: relative;
+  -ms-overflow-style: none;
+  /* Internet Explorer 10+ */
+  scrollbar-width: none;
+  /* Firefox */
+  overflow-y: scroll;
+  width: 100%;
+  height: 100%;
+  border-left: 1px dashed #fab387;
+  max-height: 100%;
+}
+
+#roller_wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+#menu_wrapper {
+  position: relative;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-left: 5px;
+  padding-right: 5px;
+  height: 100%;
+  z-index: 0;
+  gap: 1px;
+
+}
+
+#visualizer_wrapper {
+  aspect-ratio: 1.61803399;
+  width: 100%;
+  z-index: -1;
+}
+
+#menu_wrapper>button {
+  height: 100%;
+  width: 100%;
+  border: none;
+  margin-top: 1%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  font-size: 32px;
+  border-radius: 5px;
+  display: flex;
+  border-left: 0px;
+  color: #fab387;
+  background: #1e1e2e;
+
+}
+
+.task {
+  height: 4rem;
+  width: calc(100% - 10px);
+  min-height: 4rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  justify-items: stretch;
+  align-items: center;
+  border-right: 5px solid #b4befe;
+  border-left: 5px solid #b4befe;
+  border-radius: 15px 0px 15px 0px;
+  gap: 1rem;
+  background: #cdd6f4;
+  animation-duration: 2s;
+}
+
+.open_task_wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+.open_task_wrapper {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 33%;
+  max-height: calc(100%- 10px);
+  height: calc(100% - 10px);
+  padding-left: 3px;
+  padding-right: 3px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  animation-name: bump_up;
+  animation-duration: 0.5s;
+  background: #181825;
+
+  -ms-overflow-style: none;
+  /* Internet Explorer 10+ */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.open_task {
+  height: 4rem;
+  width: calc(100% - 10px);
+  min-height: 4rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  justify-items: stretch;
+  align-items: center;
+  border-right: 5px solid #b4befe;
+  border-left: 5px solid #b4befe;
+  border-radius: 15px 0px 15px 0px;
+  gap: 1rem;
+  background: #cdd6f4;
+}
+
+.sub_task_tray {
+  margin-top: 5px;
+  height: calc(100% - 5px);
+  width: calc(100% - 10px);
+  padding-left: 5px;
+  background: #181825;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sub_task_wrapper {
+  min-height: 4rem;
+  height: fit-content;
+  width: 100%;
+  display: flex;
+  justify-content: end;
+  align-items: center;
+  gap: 10px;
+}
+
+.sub_task_time_dial {
+  width: 25%;
+  height: 3rem;
+  padding: 1px;
+  background: #cdd6f4;
+  font-size: 1.25rem;
+  border: 2px solid #cdd6f4;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.sub_task {
+  width: 75%;
+  height: calc(100% - 3px);
+  padding: 1px;
+  background: #cdd6f4;
+  font-size: 1.25rem;
+  border: 2px solid #cdd6f4;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.sub_task>p {
+  max-height: 100%;
+  margin-left: 2%;
+  margin-right: 2%;
+}
+
+.sub_task>textarea {
+  max-height: 100%;
+  margin-left: 2%;
+  margin-right: 2%;
+}
