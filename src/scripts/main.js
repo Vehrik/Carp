@@ -31,8 +31,12 @@ let dom_switch = (parent, element) => {
 
 let chain_dom_nodes = (parent, ...children) => {
   if (children.length == 0) return
+
+  if (Array.isArray(children[0])) {
+    children[0] = chain_dom_nodes(children[0].shift(), ...children[0])
+  }
   parent.append(chain_dom_nodes(children.shift(), ...children));
-  console.log(parent)
+
   return parent;
 };
 
