@@ -3,14 +3,36 @@ const $Roller = document.querySelector("#roller");
 const $Sidebar = document.getElementById("sidebar");
 const $Menu_Wrapper = document.getElementById("menu_wrapper");
 
-init_with_classes = (element, ...classes) => {
-  element.classList.add(...classes);
-  return element;
-};
+let div = (...classes) => {
+  let _ = document.createElement('div')
+  if (classes.length == 0) return _
+  _.classList.add(classes)
+  return _
+}
 
-animation_trigger = (element, ...animations) => {
-  element.onanimationend = () => {
+
+init_component = (component) => {
+  let component_root = null
+  Object.entries(component).forEach((sub_component) => {
+    if (!(sub_component[1] instanceof HTMLElement)) {
+      sub_component[1] = init_component(sub_component[1])
+    } else {
+      sub_component[1].classList.add(sub_component[0]);
+    }
+    if (component_root == null) {
+      component_root = sub_component[1]
+    } else {
+      component_root.append(sub_component[1])
+    }
+  })
+  return component_root
+}
+
+
+animation_trigger = (element, animations, ...afterAnimationHooks) => {
+  element.onanimationend = (e) => {
     element.classList.remove(animations);
+    afterAnimationHooks.forEach((hook) => hook(e, element, animations))
   };
   return () => element.classList.add(animations);
 };
@@ -29,17 +51,6 @@ let dom_switch = (parent, element) => {
   }
 }
 
-let chain_dom_nodes = (parent, ...children) => {
-  if (children.length == 0) return
-
-  if (Array.isArray(children[0])) {
-    children[0] = chain_dom_nodes(children[0].shift(), ...children[0])
-  }
-  parent.append(chain_dom_nodes(children.shift(), ...children));
-
-  return parent;
-};
-
 let fade_out_side_bar = animation_trigger($Sidebar, ["fade_out"]);
 
 //let $NewTaskToolbar = chain_dom_nodes([
@@ -50,22 +61,30 @@ let fade_out_side_bar = animation_trigger($Sidebar, ["fade_out"]);
 //init_with_classes(document.createElement("button"), ["delete_subtask_button",]),
 //]);
 
-let new_sub_task = () => chain_dom_nodes(document.querySelector(".sub_task_tray"), [
-  init_with_classes(document.createElement("div"), ["sub_task_wrapper",]),
-  init_with_classes(document.createElement("div"), ["sub_task"]),
-  init_with_classes(document.createElement("div"), ["sub_task_time_dial",]),
-  document.createElement("p"),
-])
+let new_sub_task = init_component({
+  sub_task_wrapper: div(),
+  sub_task: div(),
+  sub_task_time_dial: div(),
+  sub_task_text: document.createElement("p"),
+})
 
 
-let open_new_task_area_switch = dom_switch(document.body, chain_dom_nodes(
-  init_with_classes(document.createElement("div"), ["open_task_wrapper"]),
-  init_with_classes(document.createElement("div"), ["open_task"]),
-  init_with_classes(document.createElement("div"), ["sub_task_tray"]),
-));
+let tray_button = div()
+tray_button.innerText = "x"
 
-console.log(open_new_task_area_switch)
+let open_task_wrapper = div('slide_in_from_left')
+let open_new_task_area_switch = dom_switch(document.body, init_component({
+  _: { open_task_wrapper: open_task_wrapper, close_task_tray_button: tray_button },
+  open_task: div(),
+  sub_task_tray: div()
+}))
 
-$Add_Task_Button.onclick = () => {
-  open_new_task_area_switch();
-};
+let slide_tray_away = animation_trigger(open_task_wrapper, 'slide_out_to_below', (e) => {
+  if (e.animationName == "slide_out_to_left") {
+    open_new_task_area_switch()
+  }
+
+})
+tray_button.onclick = slide_tray_away
+$Add_Task_Button.onclick = open_new_task_area_switch;
+
