@@ -1,90 +1,68 @@
-const $Add_Task_Button = document.querySelector("#add_task_button");
-const $Roller = document.querySelector("#roller");
-const $Sidebar = document.getElementById("sidebar");
-const $Menu_Wrapper = document.getElementById("menu_wrapper");
+const UI = {}
+UI.add_task_button = document.getElementById("add_task_button");
+UI.roller = document.getElementById("roller");
+UI.sidebar = document.getElementById("sidebar");
+UI.menu_wrapper = document.getElementById("menu_wrapper");
 
-let div = (...classes) => {
-  let _ = document.createElement('div')
+let component = (ui) => (type) => (...classes) => {
+  let _ = document.createElement(type)
   if (classes.length == 0) return _
-  _.classList.add(classes)
+  _.classList.add(...classes)
+  ui[`${classes[0]}`] = _
   return _
 }
+let div = (ui) => (...styles) => component(ui)('div')(...styles)
+let p = (ui) => (...styles) => component(ui)('p')(...styles)
 
-
-init_component = (component) => {
-  let component_root = null
-  Object.entries(component).forEach((sub_component) => {
-    if (!(sub_component[1] instanceof HTMLElement)) {
-      sub_component[1] = init_component(sub_component[1])
-    } else {
-      sub_component[1].classList.add(sub_component[0]);
-    }
-    if (component_root == null) {
-      component_root = sub_component[1]
-    } else {
-      component_root.append(sub_component[1])
-    }
+const Triggers = {}
+let trigger = (type) => (...senders) => (...actions) => {
+  senders.forEach(sender => {
+    actions.forEach(action => {
+      sender.addEventListener(type, action)
+    })
   })
-  return component_root
 }
+Triggers.on_click = trigger('click')
+Triggers.on_hover = trigger('mouseover')
 
-
-animation_trigger = (element, animations, ...afterAnimationHooks) => {
-  element.onanimationend = (e) => {
-    element.classList.remove(animations);
-    afterAnimationHooks.forEach((hook) => hook(e, element, animations))
-  };
-  return () => element.classList.add(animations);
+const Actions = {}
+Actions.toggle = (is_visible = false) => (...sources) => (target) => {
+  return () => {
+    if (!is_visible) {
+      is_visible = true
+      sources.forEach(source => source.append(target))
+    } else {
+      is_visible = false
+      sources.forEach(source => source.removeChild(target))
+    }
+  }
+}
+Actions.toggle_on_then_off = Actions.toggle(false)
+Actions.toggle_off_then_on = Actions.toggle(true)
+Actions.toggle_after_animation = (...targets) => (...animation_names) => (toggle) => {
+  targets.forEach((target) => {
+    target.addEventListener('animationend', (e) => {
+      if (animation_names.includes(e.animationName)) {
+        toggle()
+      }
+      target.classList.remove(...animation_names)
+    })
+  })
+  return () => targets.forEach(target => target.classList.add(animation_names))
 };
 
-let dom_switch = (parent, element) => {
-  let node_visible = false;
-
-  return () => {
-    if (!node_visible) {
-      parent.append(element)
-      node_visible = true
-    } else {
-      parent.removeChild(element)
-      node_visible = false
-    }
-  }
+const new_task_area = (ui) => {
+  let tray = div(ui)('open_task_wrapper', 'slide_in_from_left')
+  let toggle_new_task_area = Actions.toggle_on_then_off(ui.sidebar)(tray)
+  tray.append(div(ui)('close_task_tray_button'))
+  tray.append(div(ui)('open_task'))
+  tray.append(div(ui)('sub_task_tray'))
+  Triggers.on_click(ui.add_task_button)(toggle_new_task_area)
+  Triggers.on_click(ui.close_task_tray_button)(Actions.toggle_after_animation(tray)('slide_out_to_left')(toggle_new_task_area))
 }
 
-let fade_out_side_bar = animation_trigger($Sidebar, ["fade_out"]);
+const init_ui = (ui) => (...sub_routines) => {
+  sub_routines.forEach((sub_routine) => sub_routine(ui))
+}
 
-//let $NewTaskToolbar = chain_dom_nodes([
-//init_with_classes(document.createElement("div"), ["new_task_toolbar_wrapper",]),
-//init_with_classes(document.createElement("div"), ["new_task_toolbar"]),
-//init_with_classes(document.createElement("button"), ["add_new_subtask_button",]),
-//init_with_classes(document.createElement("button"), ["open_task_property_menu_button",]),
-//init_with_classes(document.createElement("button"), ["delete_subtask_button",]),
-//]);
-
-let new_sub_task = init_component({
-  sub_task_wrapper: div(),
-  sub_task: div(),
-  sub_task_time_dial: div(),
-  sub_task_text: document.createElement("p"),
-})
-
-
-let tray_button = div()
-tray_button.innerText = "x"
-
-let open_task_wrapper = div('slide_in_from_left')
-let open_new_task_area_switch = dom_switch(document.body, init_component({
-  _: { open_task_wrapper: open_task_wrapper, close_task_tray_button: tray_button },
-  open_task: div(),
-  sub_task_tray: div()
-}))
-
-let slide_tray_away = animation_trigger(open_task_wrapper, 'slide_out_to_below', (e) => {
-  if (e.animationName == "slide_out_to_left") {
-    open_new_task_area_switch()
-  }
-
-})
-tray_button.onclick = slide_tray_away
-$Add_Task_Button.onclick = open_new_task_area_switch;
-
+init_ui(UI)(new_task_area)
